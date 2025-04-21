@@ -1,5 +1,5 @@
 import { createObjectCsvStringifier } from 'csv-writer';
-import {formatDate, statusFulfillmentValueMap, statusPaymentValueMap} from "./utils";
+import {formatDate, statusFulfillmentValueMap, statusPaymentValueMap} from "./utils/utils";
 import type { ExportOrderFragmentFragment } from 'app/types/admin.generated';
 export async function parseOrdersToCSV(orders: any[]) {
   const csvStringifier = createObjectCsvStringifier({
