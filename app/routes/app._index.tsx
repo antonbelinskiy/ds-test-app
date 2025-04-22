@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { json, useFetcher, useLoaderData } from "@remix-run/react";
 import { Layout, Page } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { GetOrders } from "app/graphQl/GetOrders.adm-gql";
@@ -31,7 +31,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
 
     const data = await response.json();
-    return Response.json(data as OrdersData);
+    return json(data as OrdersData);
   } catch (error) {
     console.error('GraphQL request failed:', error);
     throw error;
