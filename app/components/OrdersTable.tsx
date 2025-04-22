@@ -8,7 +8,7 @@ import {
   Text,
 } from "@shopify/polaris";
 import type { OrderFragmentFragment } from "app/types/admin.generated";
-import { statusFulfillmentValueMap, statusPaymentValueMap } from "app/utils/utils";
+import { statusFulfillmentValueMap, statusPaymentValueMap, formatTableDate } from "app/utils/utils";
 import { useOrderExport } from "app/hooks/useOrderExport";
 
 export type OrderType = {
@@ -89,7 +89,7 @@ export function OrdersTable({ orders, pageInfo, isLoading, onPageChange }: Order
             </Text>
           </IndexTable.Cell>
           <IndexTable.Cell>
-            {new Date(node.createdAt).toLocaleDateString()}
+            {formatTableDate(node.createdAt)}
           </IndexTable.Cell>
           <IndexTable.Cell>
             {node.customer ? 

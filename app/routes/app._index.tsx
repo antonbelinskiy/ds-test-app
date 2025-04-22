@@ -1,21 +1,48 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { useFetcher } from "@remix-run/react";
-import { Page } from "@shopify/polaris";
+import { useFetcher, useLoaderData } from "@remix-run/react";
+import { Layout, Page } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { GetOrders } from "app/graphQl/GetOrders.adm-gql";
 import { OrdersTable } from "../components/OrdersTable";
 import type { OrderType } from "../components/OrdersTable";
 import { useOrderExport } from "../hooks/useOrderExport";
 
+type OrdersData = {
+  data: {
+    orders: {
+      edges: OrderType[];
+      pageInfo: {
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+        startCursor: string | null;
+        endCursor: string | null;
+      };
+    };
+  };
+};
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { admin } = await authenticate.admin(request);
+  
+  try {
+    const response = await admin.graphql(GetOrders, {
+      variables: { first: 50 },
+    });
+
+    const data = await response.json();
+    return Response.json(data as OrdersData);
+  } catch (error) {
+    console.error('GraphQL request failed:', error);
+    throw error;
+  }
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
+  console.log(admin);
   const formData = await request.formData();
+  console.log(formData);
   const cursor = formData.get('cursor')?.toString();
   const direction = formData.get('direction')?.toString();
   try {
@@ -26,6 +53,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     const data = await response.json();
+    console.log(data);
     return data;
   } catch (error) {
     console.error('GraphQL request failed:', error);
@@ -36,9 +64,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Index() {
   const fetcher = useFetcher<typeof action>();
   const exportOrders = useOrderExport();
-
-  const orders = (fetcher.data?.data?.orders?.edges || []) as unknown as OrderType[];
-  const pageInfo = (fetcher.data?.data?.orders?.pageInfo || {
+  const loaderData = useLoaderData<typeof loader>();
+  
+  const orders = ((fetcher.data?.data?.orders?.edges || loaderData.data?.orders?.edges) || []) as OrderType[];
+  const pageInfo = ((fetcher.data?.data?.orders?.pageInfo || loaderData.data?.orders?.pageInfo) || {
     hasNextPage: false,
     hasPreviousPage: false,
     startCursor: null,
@@ -61,18 +90,14 @@ export default function Index() {
     });
   };
 
-  useEffect(() => {
-    fetchOrders();
-  });
-
   const handlePageChange = (cursor: string | null, direction: 'next' | 'previous') => {
     fetchOrders(cursor, direction);
   };
+
   const handleAction = () => {
     setActionLoading(true);
     exportOrders({ type: 'all' }).then(() => {
       shopify.toast.show('Orders exported successfully');
-
     }).catch((error) => {
       shopify.toast.show('Error exporting orders', {
         isError: true,
@@ -81,6 +106,7 @@ export default function Index() {
       setActionLoading(false);
     });
   }
+
   return (
     <Page 
       fullWidth
@@ -91,12 +117,16 @@ export default function Index() {
         loading: actionLoading,
       }}
     >
-      <OrdersTable
-        orders={orders}
-        pageInfo={pageInfo}
-        isLoading={isLoading}
-        onPageChange={handlePageChange}
-      />
+      <Layout>
+        <Layout.Section>
+            <OrdersTable
+              orders={orders}
+              pageInfo={pageInfo}
+              isLoading={isLoading}
+              onPageChange={handlePageChange}
+            />
+        </Layout.Section>
+      </Layout>
     </Page>
   );
 }

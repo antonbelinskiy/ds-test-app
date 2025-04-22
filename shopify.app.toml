@@ -3,7 +3,7 @@
 client_id = "bce65271466736f3e6c5450e8b38a9c1"
 application_url = "https://ds-test-app.onrender.com"
 embedded = true
-name = "ds-task-export-orders"
+name = "Export orders DS test task"
 handle = "ds-task-export-orders"
 
 [build]

@@ -23,7 +23,7 @@ export async function action({ request }: ActionFunctionArgs) {
       const orders = await fetchOrders(admin, gqlQuery);
       
       if (!orders || orders.length === 0) {
-        return json({ error: 'No orders found' }, { status: 404 });
+        return Response.json({ error: 'No orders found' }, { status: 404 });
       }
       
       const csvBuffer = await parseOrdersToCSV(orders);
@@ -38,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
         if (error instanceof Response) {
           const errorText = await error.text();
           console.error('GraphQL error details:', errorText);
-          return json({ error: errorText }, { status: 500 });
+          return Response.json({ error: errorText }, { status: 500 });
         }
       
         console.error('Unknown export error details:', {
@@ -46,7 +46,7 @@ export async function action({ request }: ActionFunctionArgs) {
           message: error.message,
           stack: error.stack
         });
-        return json({ error: 'Export failed: ' + error.message }, { status: 500 });
+        return Response.json({ error: 'Export failed: ' + error.message }, { status: 500 });
       }
   }
   
