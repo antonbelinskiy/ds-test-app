@@ -115,6 +115,7 @@ export default function Index() {
         content: 'Export All Orders',
         onAction: handleAction,
         loading: actionLoading,
+        disabled: orders.length === 0,
       }}
     >
       <Layout>
